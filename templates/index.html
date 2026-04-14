@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Produtos API</title>
+</head>
+<body>
+
+<h2>Cadastro de Produto</h2>
+
+<input id="nome" placeholder="Nome"><br>
+<input id="cod" placeholder="Código"><br>
+<input id="categoria" placeholder="Categoria"><br>
+<input id="marca" placeholder="Marca"><br>
+<input id="preco" placeholder="Preço Custo"><br>
+<input id="precoVenda" placeholder="Preço Venda"><br>
+<input id="qtdEstoque" placeholder="Qtd Estoque"><br>
+<input id="minEstoque" placeholder="Estoque Min"><br>
+<input id="unidade" placeholder="Unidade"><br>
+
+<button onclick="cadastrar()">Cadastrar</button>
+
+<hr>
+
+<h2>Lista de Produtos</h2>
+<ul id="lista"></ul>
+
+<script>
+const API = "http://127.0.0.1:5000/produtos";
+
+// =========================
+// CREATE
+// =========================
+function cadastrar() {
+    const produto = {
+        nome: document.getElementById("nome").value,
+        cod: document.getElementById("cod").value,
+        categoria: document.getElementById("categoria").value,
+        marca: document.getElementById("marca").value,
+        preco: document.getElementById("preco").value,
+        precoVenda: document.getElementById("precoVenda").value,
+        qtdEstoque: document.getElementById("qtdEstoque").value,
+        minEstoque: document.getElementById("minEstoque").value,
+        unidade: document.getElementById("unidade").value
+    };
+
+    fetch(API, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(produto)
+    })
+    .then(() => {
+        limpar();
+        listar();
+    });
+}
+
+// =========================
+// READ
+// =========================
+function listar() {
+    fetch(API)
+    .then(res => res.json())
+    .then(dados => {
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        dados.forEach(p => {
+            const item = document.createElement("li");
+
+            item.innerHTML = `
+                <b>${p.nome}</b> - ${p.marca} (R$ ${p.preco_venda})
+                <button onclick="deletar(${p.id})">Excluir</button>
+                <button onclick="editar(${p.id})">Editar</button>
+            `;
+
+            lista.appendChild(item);
+        });
+    });
+}
+
+// =========================
+// DELETE
+// =========================
+function deletar(id) {
+    fetch(`${API}/${id}`, {
+        method: "DELETE"
+    })
+    .then(() => listar());
+}
+
+// =========================
+// UPDATE (simples)
+// =========================
+function editar(id) {
+    const novoNome = prompt("Novo nome:");
+    const novoPreco = prompt("Novo preço:");
+
+    const produto = {
+        nome: novoNome,
+        cod: "",
+        categoria: "",
+        marca: "",
+        preco: novoPreco,
+        precoVenda: novoPreco,
+        qtdEstoque: 0,
+        minEstoque: 0,
+        unidade: ""
+    };
+
+    fetch(`${API}/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(produto)
+    })
+    .then(() => listar());
+}
+
+// =========================
+// LIMPAR CAMPOS
+// =========================
+function limpar() {
+    document.querySelectorAll("input").forEach(i => i.value = "");
+}
+
+// carregar lista ao abrir
+listar();
+</script>
+
+</body>
+</html>
